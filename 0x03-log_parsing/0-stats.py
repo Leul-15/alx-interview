@@ -1,65 +1,54 @@
 #!/usr/bin/python3
-"""A module for parsing logs.
-"""
+
 import sys
-from collections import defaultdict
-
-status_codes = defaultdict(int)
-file_size = 0
 
 
-def print_stats(file_size, status_codes):
-    """Prints statistics about Nginx logs.
-
-    This function takes the total file size and a dictionary of status code
-    counts as arguments and prints the statistics. The function prints the
-    total file size, followed by the number of lines for each status code.
-
+def print_msg(dict_sc, total_file_size):
+    """
+    Method to print
     Args:
-        file_size (int): The total file size.
-        status_codes (dict): A dictionary of status code counts.
-
+        dict_sc: dict of status codes
+        total_file_size: total of the file
     Returns:
-        None
+        Nothing
     """
-    print("File size: {}".format(file_size))
-    for status_code, count in sorted(status_codes.items()):
-        if count:
-            print("{}: {}".format(status_code, count))
+
+    print("File size: {}".format(total_file_size))
+    for key, val in sorted(dict_sc.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
 
 
-def main():
-    """Reads Nginx logs from standard input and computes metrics.
+total_file_size = 0
+code = 0
+counter = 0
+dict_sc = {"200": 0,
+           "301": 0,
+           "400": 0,
+           "401": 0,
+           "403": 0,
+           "404": 0,
+           "405": 0,
+           "500": 0}
 
-    This function reads from standard input line by line, computes metrics,
-    and prints statistics after every 10 lines or upon receiving a keyboard
-    interrupt (CTRL + C). The function updates the global variables
-    'file_size' and 'status_codes' to keep track of the total file size and
-    status code counts.
-
-    Returns:
-        None
-    """
-    global status_codes, file_size
-    line_count = 0
-
+try:
     for line in sys.stdin:
-        line_count += 1
-        data = line.split()
-        try:
-            file_size += int(data[-1])
-            status_codes[int(data[-2])] += 1
-        except (ValueError, IndexError):
-            pass
+        parsed_line = line.split()  # ✄ trimming
+        parsed_line = parsed_line[::-1]  # inverting
 
-        if line_count % 10 == 0:
-            print_stats(file_size, status_codes)
-    print_stats(file_size, status_codes)
+        if len(parsed_line) > 2:
+            counter += 1
 
+            if counter <= 10:
+                total_file_size += int(parsed_line[0])  # file size
+                code = parsed_line[1]  # status code
 
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        print_stats(file_size, status_codes)
-        raise
+                if (code in dict_sc.keys()):
+                    dict_sc[code] += 1
+
+            if (counter == 10):
+                print_msg(dict_sc, total_file_size)
+                counter = 0
+
+finally:
+    print_msg(dict_sc, total_file_size)
