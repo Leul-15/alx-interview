@@ -1,13 +1,16 @@
 #!/usr/bin/python3
+""" """
 import sys
 import signal
 from collections import defaultdict
 
 def signal_handler(sig, frame):
+    """ Signal handler """
     print_statistics()
     sys.exit(0)
 
 def print_statistics():
+    """ Print statistics """
     global total_size, status_counts
     print("Total file size:", total_size)
     for status_code in sorted(status_counts.keys()):
