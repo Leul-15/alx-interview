@@ -25,7 +25,8 @@ signal.signal(signal.SIGINT, signal_handler)
 try:
     for line in sys.stdin:
         parts = line.split()
-        if len(parts) < 7 or parts[-2] not in ["200", "301", "400", "401", "403", "404", "405", "500"]:
+        if len(parts) < 7 or parts[-2] not in ["200", "301", "400", "401",
+                "403", "404", "405", "500"]:
             continue
         ip_address = parts[0]
         status_code = parts[-2]
