@@ -1,45 +1,42 @@
 #!/usr/bin/python3
-"""Parsing logs
-"""
 import sys
+import signal
 from collections import defaultdict
 
-status_codes = defaultdict(int)
-file_size = 0
+def handler(sig, frame):
+    """  Signal handler """
+    print_stats()
+    sys.exit(0)
 
+def print_stats():
+    """ Print statistics """
+    global size, status_counts
+    print("Total file size:", size)
+    for status_code in sorted(status_counts.keys()):
+        print(f"{status_code}: {status_counts[status_code]}")
 
-def print_stats(file_size, status_codes):
-    """
-    """
-    print("File size: {}".format(file_size))
-    for status_code, count in sorted(status_codes.items()):
-        if count:
-            print("{}: {}".format(status_code, count))
+size = 0
+status_counts = defaultdict(int)
+line_count = 0
 
+signal.signal(signal.SIGINT, handler)
 
-def main():
-    """
-    """
-    global status_codes, file_size
-    line_count = 0
-
+try:
     for line in sys.stdin:
+        parts = line.split()
+        if len(parts) < 7:
+            continue
+        ip_address = parts[0]
+        status_code = parts[-2]
+        file_size = int(parts[-1])
+
+        size += file_size
+        status_counts[status_code] += 1
         line_count += 1
-        data = line.split()
-        try:
-            file_size += int(data[-1])
-            status_codes[int(data[-2])] += 1
-        except (ValueError, IndexError):
-            pass
 
         if line_count % 10 == 0:
-            print_stats(file_size, status_codes)
-    print_stats(file_size, status_codes)
+            print_stats()
 
-
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        print_stats(file_size, status_codes)
-        raise
+except KeyboardInterrupt:
+    print_stats()
+    sys.exit(0)
