@@ -1,54 +1,58 @@
-#!/usr/bin/python3
-"""
-N queens
-"""
-
 import sys
 
-if len(sys.argv) != 2:
-    print('Usage: nqueens N')
-    exit(1)
-
-try:
-    n_q = int(sys.argv[1])
-except ValueError:
-    print('N must be a number')
-    exit(1)
-
-if n_q < 4:
-    print('N must be at least 4')
-    exit(1)
-
-
-def solve_nqueens(n):
-    '''self descriptive'''
-    if n == 0:
-        return [[]]
-    inner_solution = solve_nqueens(n - 1)
-    return [solution + [(n, i + 1)]
-            for i in range(n_q)
-            for solution in inner_solution
-            if safe_queen((n, i + 1), solution)]
-
-
-def attack_queen(square, queen):
-    '''self descriptive'''
-    (row1, col1) = square
-    (row2, col2) = queen
-    return (row1 == row2) or (col1 == col2) or\
-        abs(row1 - row2) == abs(col1 - col2)
-
-
-def safe_queen(sqr, queens):
-    '''self descriptive'''
-    for queen in queens:
-        if attack_queen(sqr, queen):
+def is_safe(board, row, col, N):
+    """ Check """
+    for i in range(row):
+        if board[i][col] == 1:
             return False
+
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
+    for i, j in zip(range(row, -1, -1), range(col, N)):
+        if board[i][j] == 1:
+            return False
+
     return True
 
+def solve_nqueens_util(board, row, N, solutions):
+    """ """
+    if row == N:
+        solutions.append('\n'.join(' '.join(str(cell) for cell in row) for row in board))
+        return
 
-for answer in reversed(solve_nqueens(n_q)):
-    result = []
-    for p in [list(p) for p in answer]:
-        result.append([i - 1 for i in p])
-    print(result)
+    for col in range(N):
+        if is_safe(board, row, col, N):
+            board[row][col] = 1
+            solve_nqueens_util(board, row + 1, N, solutions)
+            board[row][col] = 0
+
+def solve_nqueens(N):
+    """ """
+    if not isinstance(N, int):
+        print("N must be a number")
+        sys.exit(1)
+    if N < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+
+    board = [[0 for _ in range(N)] for _ in range(N)]
+    solutions = []
+    solve_nqueens_util(board, 0, N, solutions)
+
+    for solution in solutions:
+        print(solution)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
+
+    try:
+        N = int(sys.argv[1])
+    except ValueError:
+        print("N must be a number")
+        sys.exit(1)
+
+    solve_nqueens(N)
